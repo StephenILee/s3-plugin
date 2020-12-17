@@ -17,22 +17,24 @@ abstract class S3Callable<T> implements FileCallable<T> {
     private final Secret secretKey;
     private final boolean useRole;
     private final String region;
+    private final String endPoint;
     private final ProxyConfiguration proxy;
 
     private static transient HashMap<String, TransferManager> transferManagers = new HashMap<>();
 
-    S3Callable(String accessKey, Secret secretKey, boolean useRole, String region, ProxyConfiguration proxy) {
+    S3Callable(String accessKey, Secret secretKey, boolean useRole, String region, String endPoint, ProxyConfiguration proxy) {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.useRole = useRole;
         this.region = region;
+        this.endPoint = endPoint;
         this.proxy = proxy;
     }
 
     protected synchronized TransferManager getTransferManager() {
         final String uniqueKey = getUniqueKey();
         if (transferManagers.get(uniqueKey) == null) {
-            final AmazonS3 client = ClientHelper.createClient(accessKey, Secret.toString(secretKey), useRole, region, proxy);
+            final AmazonS3 client = ClientHelper.createClient(accessKey, Secret.toString(secretKey), useRole, region, endPoint, proxy);
             transferManagers.put(uniqueKey, new TransferManager(client));
         }
 

@@ -14,7 +14,10 @@
           <f:select />
         </f:entry>
         <f:entry title="Bucket Region" field="selectedRegion">
-            <f:select/>
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Bucket End Point" field="selectedEndPoint">
+            <f:textbox/>
         </f:entry>
         <f:entry field="noUploadOnFailure" title="No upload on build failure">
 		    <f:checkbox />

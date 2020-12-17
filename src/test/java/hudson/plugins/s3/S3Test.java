@@ -102,7 +102,7 @@ public class S3Test {
     }
 
     private Entry entryForFile(String fileName) {
-        return new Entry("bucket", fileName, "", "", "", false, false, true, false, false, false, false, false, null);
+        return new Entry("bucket", fileName, "", "", "", "", false, false, true, false, false, false, false, false, null);
     }
 
     private Builder stepCreatingFile(String fileName) {
@@ -131,11 +131,12 @@ public class S3Test {
                 Mockito.anyMap(),
                 Mockito.anyString(),
                 Mockito.anyString(),
+                Mockito.anyString(),
                 Mockito.anyBoolean(),
                 Mockito.anyBoolean(),
                 Mockito.anyBoolean(),
                 Mockito.anyBoolean()
-        )).thenReturn(newArrayList(new FingerprintRecord(true, "bucket", "path", "eu-west-1", "xxxx")));
+        )).thenReturn(newArrayList(new FingerprintRecord(true, "bucket", "https://storage.googleapis.com", "path", "eu-west-1", "xxxx")));
         return profile;
     }
 

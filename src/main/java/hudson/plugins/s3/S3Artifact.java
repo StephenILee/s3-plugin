@@ -13,12 +13,14 @@ public final class S3Artifact implements Serializable {
     private final String bucket;
     private final String name;
     private final String region;
+    private final String endPoint;
     private /*almost final*/ Boolean useFullProjectName;
 
-    public S3Artifact(String region, String bucket, String name) {
+    public S3Artifact(String region, String endPoint, String bucket, String name) {
         this.bucket = bucket.intern();
         this.name = name.intern();
         this.region = region.intern();
+        this.endPoint = endPoint.intern();
         this.useFullProjectName = true;
     }
 
@@ -46,6 +48,11 @@ public final class S3Artifact implements Serializable {
         return region;
     }
 
+    @Exported
+    public String getEndPoint() {
+        return endPoint;
+    }
+    
     public Boolean useFullProjectName() {
         if (useFullProjectName == null)
             return false;

@@ -1,7 +1,5 @@
 package hudson.plugins.s3;
 
-import hudson.FilePath;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,17 +7,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import hudson.ProxyConfiguration;
-import hudson.plugins.s3.callable.MasterSlaveCallable;
-import hudson.plugins.s3.callable.S3CleanupUploadCallable;
-import hudson.plugins.s3.callable.S3DownloadCallable;
-import hudson.plugins.s3.callable.S3GzipCallable;
-import hudson.plugins.s3.callable.S3UploadCallable;
-import hudson.plugins.s3.callable.S3WaitUploadCallable;
-import jenkins.model.Jenkins;
 import org.apache.commons.io.FilenameUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -28,8 +19,17 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.collect.Lists;
 
+import hudson.FilePath;
+import hudson.ProxyConfiguration;
 import hudson.model.Run;
+import hudson.plugins.s3.callable.MasterSlaveCallable;
+import hudson.plugins.s3.callable.S3CleanupUploadCallable;
+import hudson.plugins.s3.callable.S3DownloadCallable;
+import hudson.plugins.s3.callable.S3GzipCallable;
+import hudson.plugins.s3.callable.S3UploadCallable;
+import hudson.plugins.s3.callable.S3WaitUploadCallable;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 
 public class S3Profile {
     private final String name;
@@ -116,8 +116,8 @@ public class S3Profile {
         return signedUrlExpirySeconds;
     }
 
-    public AmazonS3Client getClient(String region) {
-        return ClientHelper.createClient(accessKey, Secret.toString(secretKey), useRole, region, getProxy());
+    public AmazonS3 getClient(String region, String endPoint) {
+        return ClientHelper.createClient(accessKey, Secret.toString(secretKey), useRole, region, endPoint, getProxy());
     }
 
     public List<FingerprintRecord> upload(Run<?, ?> run,
@@ -127,6 +127,7 @@ public class S3Profile {
                                     final Map<String, String> userMetadata,
                                     final String storageClass,
                                     final String selregion,
+                                    final String selEndPoint,
                                     final boolean uploadFromSlave,
                                     final boolean managedArtifacts,
                                     final boolean useServerSideEncryption,
@@ -151,17 +152,17 @@ public class S3Profile {
                 final MasterSlaveCallable<String> upload;
                 if (gzipFiles) {
                     upload = new S3GzipCallable(accessKey, secretKey, useRole, dest, userMetadata,
-                            storageClass, selregion, useServerSideEncryption, getProxy());
+                            storageClass, selregion, selEndPoint, useServerSideEncryption, getProxy());
                 } else {
                     upload = new S3UploadCallable(accessKey, secretKey, useRole, dest, userMetadata,
-                            storageClass, selregion, useServerSideEncryption, getProxy());
+                            storageClass, selregion, selEndPoint, useServerSideEncryption, getProxy());
                 }
 
                 final FingerprintRecord fingerprintRecord = repeat(maxUploadRetries, uploadRetryTime, dest, new Callable<FingerprintRecord>() {
                     @Override
                     public FingerprintRecord call() throws IOException, InterruptedException {
                         final String md5 = invoke(uploadFromSlave, filePath, upload);
-                        return new FingerprintRecord(produced, bucketName, fileName, selregion, md5);
+                        return new FingerprintRecord(produced, bucketName, fileName, selregion, selEndPoint, md5);
                     }
                 });
 
@@ -201,8 +202,8 @@ public class S3Profile {
         }
     }
 
-    public List<String> list(Run build, String bucket) {
-        final AmazonS3Client s3client = getClient(ClientHelper.DEFAULT_AMAZON_S3_REGION_NAME);
+    public List<String> list(Run build, String bucket, String endPoint) {
+        final AmazonS3 s3client = getClient(ClientHelper.DEFAULT_AMAZON_S3_REGION_NAME, endPoint);
 
         final String buildName = build.getDisplayName();
         final int buildID = build.getNumber();
@@ -246,8 +247,8 @@ public class S3Profile {
                   fingerprints.add(repeat(maxDownloadRetries, downloadRetryTime, dest, new Callable<FingerprintRecord>() {
                       @Override
                       public FingerprintRecord call() throws IOException, InterruptedException {
-                          final String md5 = target.act(new S3DownloadCallable(accessKey, secretKey, useRole, dest, artifact.getRegion(), getProxy()));
-                          return new FingerprintRecord(true, dest.bucketName, target.getName(), artifact.getRegion(), md5);
+                          final String md5 = target.act(new S3DownloadCallable(accessKey, secretKey, useRole, dest, artifact.getRegion(), artifact.getEndPoint(), getProxy()));
+                          return new FingerprintRecord(true, dest.bucketName, target.getName(), artifact.getRegion(), artifact.getEndPoint(), md5);
                       }
                   }));
               }
@@ -286,7 +287,7 @@ public class S3Profile {
       public void delete(Run run, FingerprintRecord record) {
           final Destination dest = Destination.newFromRun(run, record.getArtifact());
           final DeleteObjectRequest req = new DeleteObjectRequest(dest.bucketName, dest.objectName);
-          final AmazonS3Client client = getClient(record.getArtifact().getRegion());
+          final AmazonS3 client = getClient(record.getArtifact().getRegion(), record.getArtifact().getEndPoint());
           client.deleteObject(req);
       }
 

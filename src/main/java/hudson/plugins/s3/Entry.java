@@ -43,6 +43,10 @@ public final class Entry implements Describable<Entry> {
      * Stores the Region Value
      */
     public String selectedRegion;
+    /**
+     * Stores the Region Value
+     */
+    public String selectedEndPoint;
     
     /**
      * Do not publish the artifacts when build fails
@@ -91,7 +95,7 @@ public final class Entry implements Describable<Entry> {
     public List<MetadataPair> userMetadata;
 
     @DataBoundConstructor
-    public Entry(String bucket, String sourceFile, String excludedFile, String storageClass, String selectedRegion,
+    public Entry(String bucket, String sourceFile, String excludedFile, String storageClass, String selectedRegion, String selectedEndPoint,
                  boolean noUploadOnFailure, boolean uploadFromSlave, boolean managedArtifacts,
                  boolean useServerSideEncryption, boolean flatten, boolean gzipFiles, boolean keepForever,
                  boolean showDirectlyInBrowser, List<MetadataPair> userMetadata) {
@@ -100,6 +104,7 @@ public final class Entry implements Describable<Entry> {
         this.excludedFile = excludedFile;
         this.storageClass = storageClass;
         this.selectedRegion = selectedRegion;
+        this.selectedEndPoint = selectedEndPoint;
         this.noUploadOnFailure = noUploadOnFailure;
         this.uploadFromSlave = uploadFromSlave;
         this.managedArtifacts = managedArtifacts;

@@ -20,9 +20,9 @@ public class FingerprintRecord implements Serializable {
     private boolean showDirectlyInBrowser;
 
 
-    public FingerprintRecord(boolean produced, String bucket, String name, String region, String md5sum) {
+    public FingerprintRecord(boolean produced, String bucket, String endPoint, String name, String region, String md5sum) {
         this.produced = produced;
-        this.artifact = new S3Artifact(region, bucket, name);
+        this.artifact = new S3Artifact(region, endPoint, bucket, name);
         this.md5sum = md5sum;
         this.showDirectlyInBrowser = false;
         this.keepForever = false;
