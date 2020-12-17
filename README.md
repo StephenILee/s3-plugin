@@ -1,4 +1,5 @@
-[![Build Status](https://jenkins.ci.cloudbees.com/buildStatus/icon?job=plugins/s3-plugin)](https://jenkins.ci.cloudbees.com/job/plugins/job/s3-plugin/)
+Added a endpoint input of another S3-compatible Object Storage(GCP Storage, NCP/KOSCOM Object Storage)
+Changed to manually enter the Region select element
 
 Install
 =======
