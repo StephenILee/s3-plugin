@@ -1,5 +1,6 @@
 Added a endpoint input of another S3-compatible Object Storage(GCP Storage, NCP/KOSCOM Object Storage)
 Changed to manually enter the Region select element
+![project_config](project_configuration.png)
 
 Install
 =======
